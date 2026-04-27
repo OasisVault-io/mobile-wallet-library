@@ -1,12 +1,12 @@
 import { Text, View, StyleSheet } from "react-native";
-import { multiply } from "rn-multisig-wallet";
+import { generateMnemonic } from "rn-multisig-wallet";
 
-const result = multiply(3, 7);
+const mnemonic = generateMnemonic();
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Text>{mnemonic}</Text>
     </View>
   );
 }

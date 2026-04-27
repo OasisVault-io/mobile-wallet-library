@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild",
     "web": "expo start --web",
     "build:ios": "xcodebuild ONLY_ACTIVE_ARCH=YES -workspace ios/RnMultisigWalletExample.xcworkspace -UseNewBuildSystem=YES -scheme RnMultisigWalletExample -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build -quiet",
     "build:android": "cd android && ./gradlew assembleDebug -DtestBuildType=debug -Dorg.gradle.jvmargs=-Xmx4g",
@@ -19,6 +20,9 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.6",
+    "react-native-nitro-modules": "^0.35.4",
+    "react-native-quick-base64": "^2.2.2",
+    "react-native-quick-crypto": "^1.0.19",
     "react-native-web": "~0.21.0"
   },
   "devDependencies": {
