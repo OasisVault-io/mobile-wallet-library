@@ -1,0 +1,5 @@
+export const BITCOIN_DECIMALS = 8;
+export const ETHEREUM_DECIMALS = 18;
+export const BITCOIN_MAINNET_DERIVATION_PATH = "m/49'/0'/0'";
+export const BITCOIN_MAINNET_RECOVERY_DERIVATION_PATH = "m/49'/0'/0'/0/0";
+export const ETHEREUM_DERIVATION_PATH = "m/44'/60'/0'/0/0";

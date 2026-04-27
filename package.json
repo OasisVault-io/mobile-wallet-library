@@ -62,11 +62,17 @@
     "release": "release-it --only-version"
   },
   "dependencies": {
+    "@scure/bip32": "^2.2.0",
+    "@scure/bip39": "^2.2.0",
+    "bitcoinjs-lib": "^7.0.1",
+    "ethers": "^6.16.0",
     "react-native-device-info": "^15.0.2",
     "react-native-nitro-modules": "^0.35.4",
     "react-native-passkey": "3.3.3",
     "react-native-quick-base64": "^2.2.2",
-    "react-native-quick-crypto": "^1.0.19"
+    "react-native-quick-crypto": "^1.0.19",
+    "react-native-sha256": "^1.4.10",
+    "secp256k1": "^5.0.1"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^20.5.0",
