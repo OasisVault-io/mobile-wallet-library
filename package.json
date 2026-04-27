@@ -61,6 +61,13 @@
     "test": "jest",
     "release": "release-it --only-version"
   },
+  "dependencies": {
+    "react-native-device-info": "^15.0.2",
+    "react-native-nitro-modules": "^0.35.4",
+    "react-native-passkey": "3.3.3",
+    "react-native-quick-base64": "^2.2.2",
+    "react-native-quick-crypto": "^1.0.19"
+  },
   "devDependencies": {
     "@commitlint/config-conventional": "^20.5.0",
     "@jest/globals": "^30.0.0",
@@ -83,7 +90,8 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-quick-crypto": "1.0.19"
   },
   "commitlint": {
     "extends": [
