@@ -9,4 +9,5 @@ export {
   type CreateWalletOptions,
   type WalletType,
 } from "./wallet";
-export { generateMnemonic, validateMnemonic } from "./utils";
+export { generateMnemonic, validateMnemonic, generateNonce } from "./utils";
+export { registerPasskey, getPasskey } from "./passkey";

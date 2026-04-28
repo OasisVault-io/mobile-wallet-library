@@ -1,18 +1,16 @@
 import { Text, View, StyleSheet, Button } from "react-native";
-import { createWallet } from "rn-multisig-wallet";
-
-// const mnemonic = generateMnemonic();
+import { generateNonce, getPasskey } from "rn-multisig-wallet";
 
 export default function App() {
   const onPress = async () => {
-    const wallet = await createWallet({
-      type: "ethereum",
-    });
-    console.log(await wallet.wallet.signMessage("test"));
+    const nonce = generateNonce();
+    console.log(nonce);
+    const passkey = await getPasskey({ rpId: "" });
+    console.log(passkey);
   };
   return (
     <View style={styles.container}>
-      <Button title="Create Wallet" onPress={onPress} />
+      <Button title="Generate Nonce" onPress={onPress} />
       <Text>App</Text>
     </View>
   );

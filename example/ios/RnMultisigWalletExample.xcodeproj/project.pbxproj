@@ -345,7 +345,7 @@
 					"FB_SONARKIT_ENABLED=1",
 				);
 				INFOPLIST_FILE = RnMultisigWalletExample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -358,7 +358,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = rnmultisigwallet.example;
-				PRODUCT_NAME = RnMultisigWalletExample;
+				PRODUCT_NAME = "RnMultisigWalletExample";
 				SWIFT_OBJC_BRIDGING_HEADER = "RnMultisigWalletExample/RnMultisigWalletExample-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -376,7 +376,7 @@
 				CODE_SIGN_ENTITLEMENTS = RnMultisigWalletExample/RnMultisigWalletExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = RnMultisigWalletExample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -389,7 +389,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = rnmultisigwallet.example;
-				PRODUCT_NAME = RnMultisigWalletExample;
+				PRODUCT_NAME = "RnMultisigWalletExample";
 				SWIFT_OBJC_BRIDGING_HEADER = "RnMultisigWalletExample/RnMultisigWalletExample-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

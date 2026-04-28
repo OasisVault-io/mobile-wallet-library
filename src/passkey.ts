@@ -4,7 +4,6 @@ import type {
   PasskeyGetRequest,
 } from "react-native-passkey";
 import { Platform } from "react-native";
-import { getVersion } from "react-native-device-info";
 import { fromByteArray, toByteArray } from "react-native-quick-base64";
 import { generateRandomUint8Array } from "./crypto";
 
@@ -13,12 +12,15 @@ const isAndroid = Platform.OS === "android";
 
 // PRF on passkeys are only supported on iOS 18 and higher
 const isIOS18OrHigher = () => {
-  const iosVersion = parseFloat(getVersion() || "0");
+  const iosVersion = Number.parseFloat(String(Platform.Version));
   return iosVersion >= 18;
 };
 
 const isAndroid14OrHigher = () => {
-  const androidVersion = parseFloat(getVersion() || "0");
+  const androidVersion =
+    typeof Platform.Version === "number"
+      ? Platform.Version
+      : Number.parseFloat(Platform.Version);
   return androidVersion >= 14;
 };
 
