@@ -1,6 +1,6 @@
 import * as varuint from "varuint-bitcoin";
-import { type WithImplicitCoercion } from "buffer";
-import { sha256Bytes } from "react-native-sha256";
+import { Buffer, type WithImplicitCoercion } from "buffer";
+import { createHash } from "react-native-quick-crypto";
 import * as secp256k1 from "secp256k1";
 
 interface SignatureOptions {
@@ -26,10 +26,7 @@ export const signMessage = async (
   messagePrefix?: string,
   sigOptions?: SignatureOptions,
 ) => {
-  const { messagePrefixArg, segwitType, extraEntropy } = prepareSign(
-    messagePrefix,
-    sigOptions,
-  );
+  const { messagePrefixArg, segwitType, extraEntropy } = prepareSign(messagePrefix, sigOptions);
 
   const hash = await magicHash(message, messagePrefixArg);
   const privateKeyBuffer = Buffer.isBuffer(privateKey)
@@ -41,12 +38,7 @@ export const signMessage = async (
       privateKeyBuffer.sign(hash, extraEntropy)
     : secp256k1.ecdsaSign(hash, privateKeyBuffer, { data: extraEntropy });
 
-  return encodeSignature(
-    sigObj.signature,
-    sigObj.recovery ?? sigObj.recid,
-    compressed,
-    segwitType,
-  );
+  return encodeSignature(sigObj.signature, sigObj.recovery ?? sigObj.recid, compressed, segwitType);
 };
 
 const SEGWIT_TYPES = {
@@ -71,11 +63,7 @@ function prepareSign(
     //@ts-ignore
     segwitType = segwitType.toLowerCase();
   }
-  if (
-    segwitType &&
-    segwitType !== SEGWIT_TYPES.P2SH_P2WPKH &&
-    segwitType !== SEGWIT_TYPES.P2WPKH
-  ) {
+  if (segwitType && segwitType !== SEGWIT_TYPES.P2SH_P2WPKH && segwitType !== SEGWIT_TYPES.P2WPKH) {
     throw new Error(
       'Unrecognized segwitType: use "' +
         SEGWIT_TYPES.P2SH_P2WPKH +
@@ -92,9 +80,9 @@ function prepareSign(
   };
 }
 
-async function hash256(buffer: Iterable<unknown> | ArrayLike<unknown>) {
-  const res = await sha256Bytes(Array.from(buffer));
-  return await sha256Bytes(Array.from(Buffer.from(res, "hex")));
+async function hash256(buffer: Uint8Array) {
+  const firstHash = createHash("sha256").update(buffer).digest();
+  return createHash("sha256").update(firstHash).digest("hex");
 }
 
 export async function magicHash(
@@ -118,9 +106,7 @@ export async function magicHash(
   }
 
   const messageVISize = varuint.encodingLength(message.length);
-  const buffer = Buffer.allocUnsafe(
-    messagePrefix.length + messageVISize + message.length,
-  );
+  const buffer = Buffer.allocUnsafe(messagePrefix.length + messageVISize + message.length);
 
   messagePrefix.copy(buffer, 0);
   varuint.encode(message.length, buffer, messagePrefix.length);

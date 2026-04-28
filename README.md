@@ -10,12 +10,52 @@ npm install rn-multisig-wallet
 
 ## Usage
 
-```js
-import { multiply } from "rn-multisig-wallet";
+```ts
+import { createWallet } from "rn-multisig-wallet";
 
-// ...
+const { wallet, mnemonic, address } = await createWallet({
+  type: "ethereum",
+});
 
-const result = multiply(3, 7);
+const messageSignature = await wallet.signMessage("Sign in to my app");
+const signedTransaction = await wallet.signTransaction({
+  to: "0x0000000000000000000000000000000000000000",
+  value: 1n,
+  nonce: 0,
+  gasLimit: 21000n,
+  gasPrice: 1n,
+  chainId: 1,
+});
+```
+
+### Import an existing wallet
+
+```ts
+import { createWallet } from "rn-multisig-wallet";
+
+const { wallet, address } = await createWallet({
+  type: "ethereum",
+  mnemonic: "test test test test test test test test test test test junk",
+});
+```
+
+### Bitcoin
+
+```ts
+import { createWallet } from "rn-multisig-wallet";
+
+const { wallet, address } = await createWallet({
+  type: "bitcoin",
+});
+
+const messageSignature = await wallet.signMessage("Sign in to my app");
+
+const signedPsbtHex = await wallet.signTransaction({
+  psbtHex: "70736274...",
+  derivationPaths: ["0/0", "0/1"],
+});
+
+const accountXpub = wallet.getExtendedPublicKey();
 ```
 
 ## Contributing

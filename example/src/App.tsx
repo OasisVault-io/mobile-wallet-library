@@ -1,12 +1,19 @@
-import { Text, View, StyleSheet } from "react-native";
-import { generateMnemonic } from "rn-multisig-wallet";
+import { Text, View, StyleSheet, Button } from "react-native";
+import { createWallet } from "rn-multisig-wallet";
 
-const mnemonic = generateMnemonic();
+// const mnemonic = generateMnemonic();
 
 export default function App() {
+  const onPress = async () => {
+    const wallet = await createWallet({
+      type: "ethereum",
+    });
+    console.log(await wallet.wallet.signMessage("test"));
+  };
   return (
     <View style={styles.container}>
-      <Text>{mnemonic}</Text>
+      <Button title="Create Wallet" onPress={onPress} />
+      <Text>App</Text>
     </View>
   );
 }

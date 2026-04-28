@@ -17,6 +17,9 @@ importers:
       bitcoinjs-lib:
         specifier: ^7.0.1
         version: 7.0.1(typescript@6.0.3)
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
       ethers:
         specifier: ^6.16.0
         version: 6.16.0
@@ -35,12 +38,12 @@ importers:
       react-native-quick-crypto:
         specifier: ^1.0.19
         version: 1.0.19(expo@55.0.17)(react-native-nitro-modules@0.35.4(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native-quick-base64@2.2.2(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
-      react-native-sha256:
-        specifier: ^1.4.10
-        version: 1.4.10
       secp256k1:
         specifier: ^5.0.1
         version: 5.0.1
+      varuint-bitcoin:
+        specifier: ^2.0.0
+        version: 2.0.0
     devDependencies:
       '@commitlint/config-conventional':
         specifier: ^20.5.0
@@ -117,6 +120,15 @@ importers:
       react-native:
         specifier: 0.83.6
         version: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
+      react-native-nitro-modules:
+        specifier: ^0.35.4
+        version: 0.35.4(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      react-native-quick-base64:
+        specifier: ^2.2.2
+        version: 2.2.2(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      react-native-quick-crypto:
+        specifier: ^1.0.19
+        version: 1.0.19(expo@55.0.17)(react-native-nitro-modules@0.35.4(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native-quick-base64@2.2.2(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       react-native-web:
         specifier: ~0.21.0
         version: 0.21.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -4632,9 +4644,6 @@ packages:
         optional: true
       expo-build-properties:
         optional: true
-
-  react-native-sha256@1.4.10:
-    resolution: {integrity: sha512-x12owcA1jQZ1GMUX2xg2+4IOVJciZChcyNvolt6IjLdAFtu1tttDF9aHsCTW1J1SbLGSoYCo/UTAoNZay/YAsg==}
 
   react-native-web@0.21.2:
     resolution: {integrity: sha512-SO2t9/17zM4iEnFvlu2DA9jqNbzNhoUP+AItkoCOyFmDMOhUnBBznBDCYN92fGdfAkfQlWzPoez6+zLxFNsZEg==}
@@ -10916,8 +10925,6 @@ snapshots:
       util: 0.12.5
     optionalDependencies:
       expo: 55.0.17(@babel/core@7.29.0)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.10)(react-dom@19.2.0(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@6.0.3)
-
-  react-native-sha256@1.4.10: {}
 
   react-native-web@0.21.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:

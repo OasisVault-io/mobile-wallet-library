@@ -40,7 +40,7 @@
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
     ".": {
-      "source": "./src/index.tsx",
+      "source": "./src/index.ts",
       "types": "./lib/typescript/src/index.d.ts",
       "default": "./lib/module/index.js"
     },
@@ -65,14 +65,15 @@
     "@scure/bip32": "^2.2.0",
     "@scure/bip39": "^2.2.0",
     "bitcoinjs-lib": "^7.0.1",
+    "buffer": "^6.0.3",
     "ethers": "^6.16.0",
     "react-native-device-info": "^15.0.2",
     "react-native-nitro-modules": "^0.35.4",
     "react-native-passkey": "3.3.3",
     "react-native-quick-base64": "^2.2.2",
     "react-native-quick-crypto": "^1.0.19",
-    "react-native-sha256": "^1.4.10",
-    "secp256k1": "^5.0.1"
+    "secp256k1": "^5.0.1",
+    "varuint-bitcoin": "^2.0.0"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^20.5.0",
