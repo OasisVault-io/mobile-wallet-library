@@ -1,4 +1,5 @@
 import { randomFillSync } from "react-native-quick-crypto";
+import { fromByteArray } from "react-native-quick-base64";
 
 /**
  * Generates a random Uint8Array of a specified length using
@@ -24,7 +25,5 @@ export const byteArrayToHexString = (byteArray: Uint8Array): string => {
  * representation.
  */
 export const byteArrayToBase64String = (byteArray: Uint8Array): string => {
-  return Array.from(byteArray, (byte) =>
-    ("0" + (byte & 0xff).toString(16)).slice(-2),
-  ).join("");
+  return fromByteArray(byteArray);
 };

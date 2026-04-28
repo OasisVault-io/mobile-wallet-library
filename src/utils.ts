@@ -15,5 +15,6 @@ export const validateMnemonic = (mnemonic: string) => {
  * react-native-quick-crypto.
  */
 export const generateNonce = () => {
-  return byteArrayToBase64String(generateRandomUint8Array(32));
+  const randomArray = generateRandomUint8Array(32);
+  return byteArrayToBase64String(randomArray);
 };

@@ -9,6 +9,13 @@ import { generateRandomUint8Array } from "./crypto";
 
 const isIOS = Platform.OS === "ios";
 const isAndroid = Platform.OS === "android";
+type PrfResultValue =
+  | string
+  | Uint8Array
+  | ArrayLike<number>
+  | Record<string, number>
+  | null
+  | undefined;
 
 // PRF on passkeys are only supported on iOS 18 and higher
 const isIOS18OrHigher = () => {
@@ -46,6 +53,35 @@ const generateChallenge = (length = 32) => {
     .replace(/=/g, "")
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
+};
+
+const normalizePrfResult = (value: PrfResultValue): string => {
+  if (!value) {
+    throw new Error("no_passkey_key");
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value instanceof Uint8Array) {
+    return fromByteArray(value);
+  }
+
+  const bytes = Array.isArray(value)
+    ? Uint8Array.from(value)
+    : Uint8Array.from(
+        Object.entries(value)
+          .filter(([index]) => Number.isInteger(Number(index)))
+          .sort(([a], [b]) => Number(a) - Number(b))
+          .map(([, byte]) => byte),
+      );
+
+  if (bytes.length === 0) {
+    throw new Error("no_passkey_key");
+  }
+
+  return fromByteArray(bytes);
 };
 
 export const registerPasskey = async ({
@@ -100,13 +136,9 @@ export const registerPasskey = async ({
 
       const nonceString = fromByteArray(nonce);
 
-      //@ts-ignore - TS doesn't recognize the clientExtensionResults property
-      const prfResult = response.clientExtensionResults?.prf.results.first;
-      if (!prfResult) {
-        throw new Error("no_passkey_key");
-      }
-
-      const key = isAndroid ? prfResult : fromByteArray(prfResult);
+      const key = normalizePrfResult(
+        response.clientExtensionResults?.prf?.results?.first,
+      );
 
       return { key, nonce: nonceString };
     } catch (error: any) {
@@ -164,17 +196,11 @@ export const getPasskey = async ({
       if (typeof response === "string") {
         response = JSON.parse(response);
       }
-      let key: Uint8Array | string | undefined =
-        response.clientExtensionResults?.prf?.results?.first;
-      if (!key) {
-        throw new Error("no_passkey_key");
-      }
+      const key = normalizePrfResult(
+        response.clientExtensionResults?.prf?.results?.first,
+      );
 
-      if (typeof key !== "string") {
-        key = fromByteArray(key);
-      }
-
-      return key ? { key, nonce: requestNonce } : null;
+      return { key, nonce: requestNonce };
     } catch (error: any) {
       const errorMessage = error?.error ?? error.message ?? "";
 
