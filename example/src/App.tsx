@@ -5,7 +5,7 @@ export default function App() {
   const onPress = async () => {
     const nonce = generateNonce();
     console.log(nonce);
-    const passkey = await getPasskey({ rpId: "" });
+    const passkey = await getPasskey({ nonce, rpId: "" });
     console.log(passkey);
   };
   return (

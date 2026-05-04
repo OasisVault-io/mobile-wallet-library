@@ -11,41 +11,43 @@ import {
   ConsoleLogger,
   OpenAppDeviceAction,
 } from "@ledgerhq/device-management-kit";
-import {
-  RegisteredWallet,
-  SignerBtcBuilder,
-  WalletPolicy,
-} from "@ledgerhq/device-signer-kit-bitcoin";
-import { SignerEthBuilder } from "@ledgerhq/device-signer-kit-ethereum";
 import { RNBleTransportFactory } from "@ledgerhq/device-transport-kit-react-native-ble";
-import { HDKey } from "@scure/bip32";
-import { ethers } from "ethers";
-import * as bitcoin from "bitcoinjs-lib";
 import { BehaviorSubject, type Observable, type Subscription } from "rxjs";
 import { PermissionsAndroid, Platform } from "react-native";
 import { BleManager, State } from "react-native-ble-plx";
 import {
-  BITCOIN_MAINNET_DERIVATION_PATH,
-  BITCOIN_MAINNET_RECOVERY_DERIVATION_PATH,
-  ETHEREUM_DERIVATION_PATH,
-} from "./constants";
-import { byteArrayToHexString } from "./crypto";
+  createLedgerBitcoinClient,
+  type LedgerBitcoinTransactionParams,
+} from "./bitcoin";
+import { createLedgerEthereumClient } from "./ethereum";
 
+export type { BitcoinSigner, LedgerBitcoinTransactionParams } from "./bitcoin";
+
+/** Progress state emitted while a Ledger device action is running. */
 export type LedgerActionState = {
+  /** Device action status from Ledger's device management kit. */
   status: DeviceActionStatus;
+  /** User interaction currently required on the Ledger device, when available. */
   requiredUserInteraction?: string;
+  /** Chain-specific action step, when available. */
   step?: string;
 };
 
+/** Options shared by Ledger operations that can report action progress. */
 export type LedgerActionOptions = {
+  /** Called whenever the Ledger action status changes. */
   onStateChange?: (state: LedgerActionState) => void;
 };
 
+/** Options for Bluetooth Ledger discovery. */
 export type LedgerDiscoveryOptions = {
+  /** Called when one or more Ledger devices are found. */
   onDevicesFound?: (devices: DiscoveredDevice[]) => void;
+  /** Called when discovery fails after it has started. */
   onError?: (error: Error) => void;
 };
 
+/** Current Ledger connection/discovery lifecycle state. */
 export type LedgerSessionStatus =
   | "connected"
   | "disconnected"
@@ -53,57 +55,14 @@ export type LedgerSessionStatus =
   | "error"
   | "idle";
 
+/** Snapshot of the current Ledger session state. */
 export type LedgerSessionState = {
+  /** Connected or recently disconnected Ledger device. */
   device: ConnectedDevice | null;
+  /** Last session error, when any. */
   error: Error | null;
+  /** Current session lifecycle status. */
   status: LedgerSessionStatus;
-};
-
-export type BitcoinSigner = {
-  id: string;
-  signerId: string;
-  policyHmac: string | null;
-  masterFingerprint: string;
-  extendedPublicKey: string;
-  baseDerivationPath: string;
-};
-
-export type LedgerBitcoinTransactionParams = {
-  transaction: {
-    psbtHex: string;
-    derivationPaths: string;
-  };
-  signer: BitcoinSigner;
-  wallet: {
-    label: string;
-    policy: string;
-    signers: BitcoinSigner[];
-  };
-};
-
-type LedgerBitcoinSignature = {
-  r: string;
-  s: string;
-  v: number;
-};
-
-type LedgerEthereumSignature = {
-  r: string;
-  s: string;
-  v: number;
-};
-
-type LedgerPsbtSignature = {
-  inputIndex: number;
-  pubkey?: Uint8Array;
-  signature?: Uint8Array;
-  tapleafHash?: Uint8Array;
-};
-
-type CreateDevicePsbtParams = {
-  psbtHex: string;
-  derivationPaths: string[];
-  signer: BitcoinSigner;
 };
 
 const BLE_MANAGER_DESTROYED_ERROR = "BleManager was destroyed";
@@ -117,6 +76,7 @@ const initialLedgerSessionState: LedgerSessionState = {
   status: "idle",
 };
 
+/** Error thrown when a Ledger device disconnects during an operation. */
 export class LedgerDeviceDisconnectedError extends Error {
   constructor(message = LEDGER_DISCONNECTED_ERROR_MESSAGE) {
     super(message);
@@ -124,6 +84,7 @@ export class LedgerDeviceDisconnectedError extends Error {
   }
 }
 
+/** Returns true when `error` is a Ledger disconnection error. */
 export function isLedgerDeviceDisconnectedError(error: unknown) {
   return error instanceof LedgerDeviceDisconnectedError;
 }
@@ -140,6 +101,22 @@ class LedgerService {
     initialLedgerSessionState,
   );
   private sessionDevice: ConnectedDevice | null = null;
+  private bitcoinLedger = createLedgerBitcoinClient({
+    getDmk: () => this.getDmk(),
+    getSessionId: () => this.getCurrentSessionId(),
+    normalizeDerivationPath: (derivationPath) =>
+      this.normalizeLedgerDerivationPath(derivationPath),
+    waitForLedgerAction: (action, options) =>
+      this.waitForLedgerAction(action, options),
+  });
+  private ethereumLedger = createLedgerEthereumClient({
+    getDmk: () => this.getDmk(),
+    getSessionId: () => this.getCurrentSessionId(),
+    normalizeDerivationPath: (derivationPath) =>
+      this.normalizeLedgerDerivationPath(derivationPath),
+    waitForLedgerAction: (action, options) =>
+      this.waitForLedgerAction(action, options),
+  });
 
   private createDmk(): DeviceManagementKit {
     return new DeviceManagementKitBuilder()
@@ -275,95 +252,6 @@ class LedgerService {
     return this.currentSessionId;
   }
 
-  private createBitcoinLedgerSigner() {
-    return new SignerBtcBuilder({
-      dmk: this.getDmk(),
-      sessionId: this.getCurrentSessionId(),
-    }).build();
-  }
-
-  private createEthereumLedgerSigner(originToken?: string) {
-    return new SignerEthBuilder({
-      dmk: this.getDmk(),
-      sessionId: this.getCurrentSessionId(),
-      originToken,
-    }).build();
-  }
-
-  private serializeLedgerBitcoinMessageSignature(
-    signature: LedgerBitcoinSignature,
-  ) {
-    const r = Buffer.from(signature.r.replace(/^0x/, ""), "hex");
-    const s = Buffer.from(signature.s.replace(/^0x/, ""), "hex");
-    // Ledger returns a legacy recovery header, while the software wallet uses
-    // a compressed compact header for message signatures.
-    const headerValue =
-      signature.v < 27
-        ? signature.v + 31
-        : signature.v < 31
-          ? signature.v + 4
-          : signature.v;
-    const header = Buffer.from([headerValue]);
-
-    return Buffer.concat([header, r, s]).toString("base64");
-  }
-
-  private serializeLedgerEthereumSignature(signature: LedgerEthereumSignature) {
-    return ethers.Signature.from(signature).serialized;
-  }
-
-  private async getMasterFingerprintHex(options: LedgerActionOptions = {}) {
-    const signer = this.createBitcoinLedgerSigner();
-    const { masterFingerprint } = await this.waitForLedgerAction<{
-      masterFingerprint: Uint8Array;
-    }>(signer.getMasterFingerprint(), options);
-
-    return byteArrayToHexString(masterFingerprint);
-  }
-
-  private getBitcoinNetwork() {
-    return bitcoin.networks.bitcoin;
-  }
-
-  private buildDevicePsbt({
-    psbtHex,
-    derivationPaths,
-    signer,
-  }: CreateDevicePsbtParams): bitcoin.Psbt {
-    const psbt = bitcoin.Psbt.fromHex(psbtHex, {
-      network: this.getBitcoinNetwork(),
-    });
-
-    if (derivationPaths.length !== psbt.inputCount) {
-      throw new Error(
-        `Ledger input derivation path count mismatch: expected ${psbt.inputCount}, received ${derivationPaths.length}`,
-      );
-    }
-
-    derivationPaths.forEach((derivationPath, inputIndex) => {
-      const node = HDKey.fromExtendedKey(signer.extendedPublicKey).derive(
-        `m/${derivationPath}`,
-      );
-      const publicKey = node.publicKey;
-
-      if (!publicKey) {
-        throw new Error("Public key not found");
-      }
-
-      psbt.updateInput(inputIndex, {
-        bip32Derivation: [
-          {
-            masterFingerprint: Buffer.from(signer.masterFingerprint, "hex"),
-            pubkey: publicKey,
-            path: `${signer.baseDerivationPath}/${derivationPath}`,
-          },
-        ],
-      });
-    });
-
-    return psbt;
-  }
-
   private async waitForLedgerAction<
     Output,
     Error = unknown,
@@ -428,18 +316,6 @@ class LedgerService {
         },
       });
     });
-  }
-
-  private async registerLedgerWallet(
-    walletPolicy: WalletPolicy,
-    options: LedgerActionOptions = {},
-  ): Promise<RegisteredWallet> {
-    const signer = this.createBitcoinLedgerSigner();
-
-    return this.waitForLedgerAction<RegisteredWallet>(
-      signer.registerWallet(walletPolicy),
-      options,
-    );
   }
 
   private async requestBluetoothPermissions(): Promise<boolean> {
@@ -552,18 +428,22 @@ class LedgerService {
     });
   }
 
+  /** Stops an active Ledger Bluetooth discovery scan. */
   public stopDiscovery() {
     this.stopDiscoveryInternal({ preserveDmk: false });
   }
 
+  /** Returns the latest Ledger session state snapshot. */
   public getSessionState() {
     return this.sessionStateSubject.getValue();
   }
 
+  /** Observes Ledger session state changes. */
   public observeSessionState(): Observable<LedgerSessionState> {
     return this.sessionStateSubject.asObservable();
   }
 
+  /** Disconnects the current Ledger device and resets the session to idle. */
   public async disconnect() {
     this.isDisconnecting = true;
     this.clearStateSubscription();
@@ -588,6 +468,7 @@ class LedgerService {
     }
   }
 
+  /** Starts Bluetooth discovery for nearby Ledger devices. */
   public async startDiscovery({
     onDevicesFound,
     onError,
@@ -677,6 +558,7 @@ class LedgerService {
     });
   }
 
+  /** Connects to a discovered Ledger device and starts disconnect monitoring. */
   public async connect(device: DiscoveredDevice): Promise<ConnectedDevice> {
     this.stopDiscoveryInternal({ preserveDmk: true });
     this.clearStateSubscription();
@@ -707,6 +589,7 @@ class LedgerService {
     }
   }
 
+  /** Opens an app, such as `Ethereum` or `Bitcoin`, on the connected Ledger. */
   public async openApp(
     appName: string,
     options: LedgerActionOptions = {},
@@ -768,160 +651,55 @@ class LedgerService {
     });
   }
 
+  /** Reads the default Bitcoin account extended public key from Ledger. */
   public async getBitcoinExtendedPublicKey(options: LedgerActionOptions = {}) {
-    const signer = this.createBitcoinLedgerSigner();
-    const { extendedPublicKey } = await this.waitForLedgerAction<{
-      extendedPublicKey: string;
-    }>(
-      signer.getExtendedPublicKey(
-        this.normalizeLedgerDerivationPath(BITCOIN_MAINNET_DERIVATION_PATH),
-      ),
-      options,
-    );
-
-    return extendedPublicKey;
+    return this.bitcoinLedger.getExtendedPublicKey(options);
   }
 
+  /** Reads the Bitcoin master fingerprint from Ledger as a hex string. */
   public async getBitcoinMasterFingerprint(options: LedgerActionOptions = {}) {
-    return this.getMasterFingerprintHex(options);
+    return this.bitcoinLedger.getMasterFingerprint(options);
   }
 
+  /** Reads the default Ethereum address from Ledger. */
   public async getEthereumAddress(options: LedgerActionOptions = {}) {
-    const signer = this.createEthereumLedgerSigner();
-    const { address } = await this.waitForLedgerAction<{
-      address: string;
-      publicKey: string;
-      chainCode?: string;
-    }>(
-      signer.getAddress(
-        this.normalizeLedgerDerivationPath(ETHEREUM_DERIVATION_PATH),
-      ),
-      options,
-    );
-
-    return address;
+    return this.ethereumLedger.getAddress(options);
   }
 
+  /** Signs a Bitcoin message with the connected Ledger. */
   public async signBitcoinMessage(
     message: string,
+    derivationPath: string,
     options: LedgerActionOptions = {},
   ) {
-    const signer = this.createBitcoinLedgerSigner();
-    const signature = await this.waitForLedgerAction<LedgerBitcoinSignature>(
-      signer.signMessage(
-        this.normalizeLedgerDerivationPath(
-          BITCOIN_MAINNET_RECOVERY_DERIVATION_PATH,
-        ),
-        message,
-      ),
-      options,
-    );
-
-    return this.serializeLedgerBitcoinMessageSignature(signature);
+    return this.bitcoinLedger.signMessage(message, derivationPath, options);
   }
 
+  /** Signs an Ethereum personal message with the connected Ledger. */
   public async signEthereumMessage(
-    message: string,
+    message: string | Uint8Array,
     options: LedgerActionOptions = {},
   ) {
-    const signer = this.createEthereumLedgerSigner();
-    const signature = await this.waitForLedgerAction<LedgerEthereumSignature>(
-      signer.signMessage(
-        this.normalizeLedgerDerivationPath(ETHEREUM_DERIVATION_PATH),
-        message,
-      ),
-      options,
-    );
-
-    return this.serializeLedgerEthereumSignature(signature);
+    return this.ethereumLedger.signMessage(message, options);
   }
 
+  /** Signs a serialized Ethereum transaction with the connected Ledger. */
   public async signEthereumTransaction(
-    transaction: string,
+    transaction: string | Uint8Array,
     options: LedgerActionOptions = {},
   ) {
-    const signer = this.createEthereumLedgerSigner();
-    const signature = await this.waitForLedgerAction<LedgerEthereumSignature>(
-      signer.signMessage(
-        this.normalizeLedgerDerivationPath(ETHEREUM_DERIVATION_PATH),
-        ethers.getBytes(transaction),
-      ),
-      options,
-    );
-
-    return this.serializeLedgerEthereumSignature(signature);
+    return this.ethereumLedger.signTransaction(transaction, options);
   }
 
-  private cleanLabel(label: string): string {
-    const formattedLabel = label
-      .replace(
-        /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu,
-        "",
-      ) // Remove emojis
-      .replace(/[^a-zA-Z0-9\s]/g, "") // Remove special characters
-      .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-      .trim(); // Trim leading and trailing spaces
-    return formattedLabel;
-  }
-
+  /** Signs a Bitcoin PSBT with the connected Ledger and wallet policy metadata. */
   public async signBitcoinTransaction(
-    {
-      transaction: { psbtHex, derivationPaths },
-      signer,
-      wallet,
-    }: LedgerBitcoinTransactionParams,
+    params: LedgerBitcoinTransactionParams,
     options: LedgerActionOptions = {},
   ) {
-    if (!derivationPaths || !signer) {
-      throw new Error("Bitcoin derivation paths are required");
-    }
-
-    const signerInfo = wallet.signers.map((walletSigner) => {
-      const path = walletSigner.baseDerivationPath.replace("m/", "");
-
-      return `[${walletSigner.masterFingerprint}/${path}]${walletSigner.extendedPublicKey}`;
-    });
-
-    const multisigPolicy = new WalletPolicy(
-      this.cleanLabel(wallet.label),
-      wallet.policy,
-      signerInfo,
-    );
-
-    const ledgerWallet = await this.registerLedgerWallet(
-      multisigPolicy,
-      options,
-    );
-    const psbt = this.buildDevicePsbt({
-      psbtHex,
-      derivationPaths: derivationPaths.split(","),
-      signer,
-    });
-
-    const ledgerSigner = this.createBitcoinLedgerSigner();
-    const signatures = await this.waitForLedgerAction<LedgerPsbtSignature[]>(
-      ledgerSigner.signPsbt(ledgerWallet, psbt.toBase64()),
-      options,
-    );
-
-    signatures.forEach((signature) => {
-      if (!signature.pubkey || !signature.signature) {
-        return;
-      }
-
-      psbt.updateInput(signature.inputIndex, {
-        partialSig: [
-          {
-            pubkey: signature.pubkey,
-            signature: signature.signature,
-          },
-        ],
-      });
-    });
-
-    return psbt.toHex();
+    return this.bitcoinLedger.signTransaction(params, options);
   }
 
+  /** Stops discovery, disconnects, clears subscriptions, and destroys BLE resources. */
   public async cleanup() {
     this.stopDiscovery();
     this.clearStateSubscription();
@@ -932,4 +710,5 @@ class LedgerService {
   }
 }
 
+/** Singleton service for discovering, connecting, and signing with Ledger devices. */
 export const ledgerService = new LedgerService();

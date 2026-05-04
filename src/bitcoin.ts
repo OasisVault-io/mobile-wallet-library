@@ -8,8 +8,13 @@ interface SignatureOptions {
   extraEntropy?: Buffer;
 }
 
-function isSigner(obj: any) {
-  return obj && typeof obj.sign === "function";
+function isSigner(obj: unknown): obj is Signer {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "sign" in obj &&
+    typeof (obj as Signer).sign === "function"
+  );
 }
 
 interface Signer {
@@ -19,6 +24,7 @@ interface Signer {
   ): { signature: Buffer; recovery: number };
 }
 
+/** Signs a Bitcoin message and returns a compact recoverable signature buffer. */
 export const signMessage = async (
   message: string | Buffer,
   privateKey: Buffer | Signer | Uint8Array,
@@ -29,16 +35,17 @@ export const signMessage = async (
   const { messagePrefixArg, segwitType, extraEntropy } = prepareSign(messagePrefix, sigOptions);
 
   const hash = await magicHash(message, messagePrefixArg);
-  const privateKeyBuffer = Buffer.isBuffer(privateKey)
-    ? privateKey
-    : // @ts-ignore
-      Buffer.from(privateKey);
-  const sigObj = isSigner(privateKeyBuffer)
-    ? // @ts-ignore
-      privateKeyBuffer.sign(hash, extraEntropy)
-    : secp256k1.ecdsaSign(hash, privateKeyBuffer, { data: extraEntropy });
+  const sigObj = isSigner(privateKey)
+    ? privateKey.sign(hash, extraEntropy)
+    : secp256k1.ecdsaSign(
+        hash,
+        Buffer.isBuffer(privateKey) ? privateKey : Buffer.from(privateKey),
+        { data: extraEntropy },
+      );
 
-  return encodeSignature(sigObj.signature, sigObj.recovery ?? sigObj.recid, compressed, segwitType);
+  const recovery = "recovery" in sigObj ? sigObj.recovery : sigObj.recid;
+
+  return encodeSignature(sigObj.signature, recovery, compressed, segwitType);
 };
 
 const SEGWIT_TYPES = {
@@ -47,22 +54,21 @@ const SEGWIT_TYPES = {
 };
 
 function prepareSign(
-  messagePrefixArg: string | undefined,
+  messagePrefixArg: string | SignatureOptions | undefined,
   sigOptions: SignatureOptions | undefined,
-) {
+): {
+  messagePrefixArg: string | undefined;
+  segwitType: SignatureOptions["segwitType"] | undefined;
+  extraEntropy: Buffer | undefined;
+} {
   if (typeof messagePrefixArg === "object" && sigOptions === undefined) {
     sigOptions = messagePrefixArg;
     messagePrefixArg = undefined;
   }
-  let { segwitType, extraEntropy } = sigOptions || {};
-  if (
-    segwitType &&
-    //@ts-ignore
-    (typeof segwitType === "string" || segwitType instanceof String)
-  ) {
-    //@ts-ignore
-    segwitType = segwitType.toLowerCase();
-  }
+  const { extraEntropy } = sigOptions || {};
+  const segwitType = sigOptions?.segwitType?.toLowerCase() as
+    | SignatureOptions["segwitType"]
+    | undefined;
   if (segwitType && segwitType !== SEGWIT_TYPES.P2SH_P2WPKH && segwitType !== SEGWIT_TYPES.P2WPKH) {
     throw new Error(
       'Unrecognized segwitType: use "' +
@@ -74,7 +80,7 @@ function prepareSign(
   }
 
   return {
-    messagePrefixArg,
+    messagePrefixArg: typeof messagePrefixArg === "string" ? messagePrefixArg : undefined,
     segwitType,
     extraEntropy,
   };
@@ -85,15 +91,15 @@ async function hash256(buffer: Uint8Array) {
   return createHash("sha256").update(firstHash).digest("hex");
 }
 
+/** Computes the double-SHA256 Bitcoin Signed Message hash for a message. */
 export async function magicHash(
-  message: //@ts-ignore - Buffer type is not up to date
+  message:
     | Buffer<ArrayBufferLike>
     | WithImplicitCoercion<string>
     | { [Symbol.toPrimitive](hint: "string"): string },
   messagePrefix:
     | WithImplicitCoercion<string>
     | { [Symbol.toPrimitive](hint: "string"): string }
-    //@ts-ignore - Buffer type is not up to date
     | Buffer<ArrayBuffer>
     | undefined,
 ) {
@@ -116,7 +122,6 @@ export async function magicHash(
 }
 
 function encodeSignature(
-  //@ts-ignore
   signature: Buffer<ArrayBufferLike> | Uint8Array<ArrayBufferLike>,
   recovery: number,
   compressed: boolean | undefined,
