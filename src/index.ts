@@ -3,8 +3,8 @@ import "./bitcoinjs-lib";
 export {
   createMobileWallet,
   type BitcoinAddressType,
-  type BitcoinGetAddressOptions,
   type BitcoinGetChildOptions,
+  type BitcoinGetExtendedPublicKeyOptions,
   type BitcoinMobileWallet,
   type BitcoinSignMessageOptions,
   type BitcoinSignPsbtOptions,

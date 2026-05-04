@@ -127,7 +127,7 @@ export interface EthereumMobileWallet {
 }
 
 /** Options for reading a Bitcoin extended public key. */
-export interface BitcoinGetAddressOptions {
+export interface BitcoinGetExtendedPublicKeyOptions {
   /** Full Bitcoin derivation path for the extended public key. */
   derivationPath: string;
 }
@@ -159,7 +159,7 @@ export interface BitcoinGetChildOptions {
 /** Bitcoin wallet handle returned by {@link createMobileWallet}. */
 export interface BitcoinMobileWallet {
   /** Returns the public extended key at the requested derivation path. */
-  getAddress(options: BitcoinGetAddressOptions): Promise<string>;
+  getExtendedPublicKey(options: BitcoinGetExtendedPublicKeyOptions): Promise<string>;
   /** Signs a Bitcoin message. */
   signMessage(options: BitcoinSignMessageOptions): Promise<string>;
   /** Signs each input in a PSBT and returns the signed PSBT hex. */

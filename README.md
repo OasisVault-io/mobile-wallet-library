@@ -1,6 +1,15 @@
 # rn-multisig-wallet
 
+[![npm version](https://img.shields.io/npm/v/rn-multisig-wallet.svg)](https://www.npmjs.com/package/rn-multisig-wallet)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.83+-61dafb.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-development%20builds-000020.svg)](https://docs.expo.dev/develop/development-builds/introduction/)
+[![Mainnet only](https://img.shields.io/badge/networks-mainnet%20only-f7931a.svg)](#compatibility)
+
 React Native helpers for mobile wallets that use BTC and ETH mainnet.
+
+## Overview
 
 The library focuses on three separate flows:
 
@@ -8,13 +17,61 @@ The library focuses on three separate flows:
 - Passkey PRF keys: register or retrieve a passkey-derived key. Your app decides how to use it.
 - Ledger devices: connect to a physical Ledger and request signatures from it.
 
+This package does not store mnemonics, encrypt wallet data, derive Bitcoin
+receiving addresses, broadcast transactions, or manage backend passkey
+registration for you. Your app owns storage, encryption format, network
+requests, and user recovery flows.
+
+## Compatibility
+
+- Expo development builds are the only tested runtime today.
+- Expo Go is not supported because wallet crypto, passkeys, and Ledger Bluetooth
+  flows depend on custom native code.
+- The package is mainnet-only for now.
+- Passkey PRF support requires native passkey support plus a PRF-capable
+  platform: iOS 18 or newer, or Android 14 or newer.
+- Passkey flows require an associated domain configured for your app.
+- Passkey and Ledger flows should be tested on physical devices. Simulator
+  support is not expected for those flows.
+- Ledger support requires Bluetooth access, a physical Ledger device, and the
+  target Ledger app installed on the device.
+
 ## Installation
+
+This package uses React Native native modules. After installing or changing
+native dependencies, rebuild the iOS and Android apps.
 
 ```sh
 npm install rn-multisig-wallet
 ```
 
-## Create a New Ethereum Wallet
+### Expo Native Setup
+
+Install and configure the native dependencies required by the flows you use:
+
+- [`react-native-quick-crypto`](https://github.com/margelo/react-native-quick-crypto#installation): required for wallet crypto and nonce generation. Follow its Expo setup and call `install()` as early as possible in your app entry file.
+- [`react-native-passkey`](https://github.com/f-23/react-native-passkey#installation): required for passkey PRF keys. Follow its native installation and iOS/Android domain association setup.
+- [`react-native-ble-plx`](https://github.com/dotintent/react-native-ble-plx#configuration--installation): required for Ledger Bluetooth connections. Follow its Expo plugin and platform permission setup.
+
+Then create a native build:
+
+```sh
+npx expo prebuild
+npx expo run:ios
+npx expo run:android
+```
+
+If you already have native projects checked in, rebuild them after installing or
+changing these dependencies. For iOS, run CocoaPods from the generated `ios`
+folder before building:
+
+```sh
+cd ios && pod install
+```
+
+## Quick Start
+
+### Create an Ethereum Wallet
 
 ```ts
 import { createMobileWallet } from "rn-multisig-wallet";
@@ -41,26 +98,11 @@ const signedTransaction = await wallet.signTransaction({
     chainId: 1,
   },
 });
+
+console.log({ messageSignature, signedTransaction });
 ```
 
-## Restore an Ethereum Wallet
-
-```ts
-import { createMobileWallet } from "rn-multisig-wallet";
-
-const { wallet, address } = await createMobileWallet({
-  chain: "ethereum",
-  mnemonic: "test test test test test test test test test test test junk",
-});
-
-const nextAddress = await wallet.getAddress({
-  derivationPath: "m/44'/60'/0'/0/1",
-});
-
-console.log({ address, nextAddress });
-```
-
-## Create or Restore a Bitcoin Wallet
+### Create a Bitcoin Wallet
 
 ```ts
 import { createMobileWallet } from "rn-multisig-wallet";
@@ -71,8 +113,8 @@ const { wallet, mnemonic } = await createMobileWallet({
 
 console.log({ mnemonic });
 
-const derivedXpub = await wallet.getAddress({
-  derivationPath: "m/49'/0'/0'/0/0",
+const accountXpub = await wallet.getExtendedPublicKey({
+  derivationPath: "m/49'/0'/0'",
 });
 
 const messageSignature = await wallet.signMessage({
@@ -80,34 +122,26 @@ const messageSignature = await wallet.signMessage({
   derivationPath: "m/49'/0'/0'/0/0",
 });
 
-const signedPsbtHex = await wallet.signPsbt({
-  psbtHex: "70736274...",
-  inputDerivationPaths: ["0/0", "0/1"],
-});
-
-const accountKey = wallet.getChild({
-  derivationPath: "m/49'/0'/0'",
-});
-
-console.log({
-  derivedXpub,
-  signedPsbtHex,
-  accountXpub: accountKey.publicExtendedKey,
-});
+console.log({ accountXpub, messageSignature });
 ```
 
-The Bitcoin mobile wallet helpers expose HD keys, extended public keys, message
+Bitcoin mobile wallet helpers expose HD keys, extended public keys, message
 signing, and PSBT signing. They do not currently derive on-chain addresses or
 accept an `addressType` option.
 
-## Passkey PRF Keys
+### Register a Passkey PRF Key
 
-Passkeys are separate from wallet creation. Use them to create or retrieve a PRF-derived key, then decide in your app how that key should be used. For example, your app may use it to encrypt and decrypt a stored mnemonic, but this library does not choose an encryption format for you.
+Passkeys are separate from wallet creation. Use them to create or retrieve a
+PRF-derived key, then decide in your app how that key should be used. For
+example, your app may use it to encrypt and decrypt a stored mnemonic, but this
+library does not choose an encryption format for you.
 
-Store the returned `nonce` with your app's encrypted wallet metadata. Pass the same nonce to `getPasskey` later to retrieve the same PRF key.
+Before calling these helpers, complete the
+[`react-native-passkey` native setup](https://github.com/f-23/react-native-passkey#installation)
+and configure the associated domain for your relying-party id.
 
 ```ts
-import { canUsePasskey, registerPasskey, getPasskey } from "rn-multisig-wallet";
+import { canUsePasskey, registerPasskey } from "rn-multisig-wallet";
 
 if (!canUsePasskey()) {
   throw new Error("Passkeys are not available on this device");
@@ -125,20 +159,15 @@ const registered = await registerPasskey({
   },
 });
 
-// Store registered.nonce. Your app decides whether and how to use registered.key.
-console.log(registered);
-
-const restored = await getPasskey({
-  rpId: "example.com",
-  nonce: registered.nonce,
-});
-
-console.log(restored.key);
+// Store registered.nonce with your encrypted wallet metadata.
+console.log(registered.key, registered.nonce);
 ```
 
-## Ledger Connected Signer
+### Connect a Ledger Signer
 
-Ledger is treated as a connected signing device, not as a wallet created by the library. The app controls discovery, connection, app opening, and signing requests.
+Ledger is treated as a connected signing device, not as a wallet created by the
+library. The app controls discovery, connection, app opening, and signing
+requests.
 
 ```ts
 import { ledgerService } from "rn-multisig-wallet";
@@ -149,6 +178,7 @@ await ledgerService.startDiscovery({
       return;
     }
 
+    await ledgerService.stopDiscovery();
     await ledgerService.connect(device);
     await ledgerService.openApp("Ethereum");
 
@@ -166,7 +196,94 @@ await ledgerService.startDiscovery({
 });
 ```
 
-### Bitcoin Ledger Signing
+## Recipes
+
+### Restore an Ethereum Wallet
+
+```ts
+import { createMobileWallet } from "rn-multisig-wallet";
+
+const { wallet, address } = await createMobileWallet({
+  chain: "ethereum",
+  mnemonic: "test test test test test test test test test test test junk",
+});
+
+const nextAddress = await wallet.getAddress({
+  derivationPath: "m/44'/60'/0'/0/1",
+});
+
+console.log({ address, nextAddress });
+```
+
+### Sign a Bitcoin PSBT
+
+```ts
+import { createMobileWallet } from "rn-multisig-wallet";
+
+const { wallet } = await createMobileWallet({
+  chain: "bitcoin",
+  mnemonic: "test test test test test test test test test test test junk",
+});
+
+const signedPsbtHex = await wallet.signPsbt({
+  psbtHex: "70736274...",
+  inputDerivationPaths: ["0/0", "0/1"],
+});
+
+console.log(signedPsbtHex);
+```
+
+Relative Bitcoin input derivation paths are resolved from the default Bitcoin
+account path, `m/49'/0'/0'`. Pass `baseDerivationPath` when your wallet uses a
+different account path.
+
+### Retrieve a Passkey PRF Key
+
+Passkey support requires native app and domain configuration. Follow the
+[`react-native-passkey` installation and configuration guide](https://github.com/f-23/react-native-passkey#installation)
+for the current iOS and Android requirements.
+
+General requirements:
+
+- Use a physical device. Simulator support is not expected for this flow.
+- Configure an associated domain for your app. The relying-party id you pass as
+  `rp.id` during registration and `rpId` during retrieval must match that domain.
+- Store the returned `nonce` with your app's encrypted wallet metadata. Pass the
+  same nonce to `getPasskey` later to retrieve the same PRF key.
+
+```ts
+import { getPasskey } from "rn-multisig-wallet";
+
+const storedNonce = "...";
+
+const restored = await getPasskey({
+  rpId: "example.com",
+  nonce: storedNonce,
+});
+
+console.log(restored.key);
+```
+
+### Sign with a Bitcoin Ledger
+
+This package wraps Ledger's React Native BLE transport and signer APIs. For full
+native setup details, follow the [Ledger Device SDK / Device Management Kit docs](https://github.com/LedgerHQ/device-sdk-ts)
+and the [`react-native-ble-plx` installation and permission guide](https://github.com/dotintent/react-native-ble-plx#configuration--installation).
+
+Main concepts:
+
+- Ledger support requires a physical Ledger device, Bluetooth access, and the
+  target Ledger app installed on the device.
+- Bluetooth is native platform work. Configure the BLE plugin and platform
+  permissions first; Android requires Bluetooth runtime permissions, and iOS
+  needs Bluetooth usage strings.
+- Discovery and connection are separate steps. Start discovery, choose a device,
+  connect to it, then stop discovery when you no longer need to scan.
+- Ledger signing is interactive. Open the correct app on the device
+  (`Ethereum` or `Bitcoin`), request the address/signature, and surface
+  `onStateChange` updates so the user knows when to confirm on the device.
+- Clean up when the flow ends. Call `disconnect()` or `cleanup()` when your
+  screen/session is finished so BLE resources and subscriptions are released.
 
 ```ts
 import { ledgerService } from "rn-multisig-wallet";
@@ -208,9 +325,12 @@ const signedPsbtHex = await ledgerService.signBitcoinTransaction({
 console.log(signedPsbtHex);
 ```
 
-## Mainnet Defaults
+## API Reference
 
-The package is mainnet-only for now. These constants are exported for apps that want to display or override derivation paths:
+### Mainnet Defaults
+
+The package is mainnet-only for now. These constants are exported for apps that
+want to display or override derivation paths:
 
 ```ts
 import {
@@ -226,35 +346,26 @@ import {
 - `BITCOIN_MAINNET_DERIVATION_PATH`: `m/49'/0'/0'`.
 - `ETHEREUM_DERIVATION_PATH`: `m/44'/60'/0'/0/0`.
 
-## API Reference
-
 ### Wallets
 
 - `createMobileWallet(options)`: creates or restores a chain-specific mobile wallet from a BIP-39 mnemonic. When `mnemonic` is omitted, the library returns a newly generated mnemonic. The library does not store or encrypt it.
-- `CreateMobileWalletOptions`: union of `CreateEthereumMobileWalletOptions` and `CreateBitcoinMobileWalletOptions`.
-- `CreateEthereumMobileWalletOptions`: `{ chain: "ethereum", mnemonic?, derivationPath?, addressDerivationPath? }`. `addressDerivationPath` overrides the path used for the returned `address`.
-- `CreateBitcoinMobileWalletOptions`: `{ chain: "bitcoin", mnemonic?, derivationPath? }`. Bitcoin wallet methods receive their signing or derivation path per call.
-- `CreatedMobileWallet`: union of `CreatedEthereumMobileWallet` and `CreatedBitcoinMobileWallet`.
-- `CreatedEthereumMobileWallet`: `{ wallet, mnemonic, address, chain: "ethereum", type: "ethereum" }`.
-- `CreatedBitcoinMobileWallet`: `{ wallet, mnemonic, chain: "bitcoin", type: "bitcoin" }`. No Bitcoin address is derived during creation.
-- `WalletChain` / `WalletType`: `"bitcoin" | "ethereum"`.
-- `BitcoinAddressType`: `"p2sh-p2wpkh" | "p2wpkh"` labels for apps that model address preferences. Current Bitcoin wallet helpers do not accept this type.
+- Ethereum wallet creation returns `{ wallet, mnemonic, address, chain, type }`.
+- Bitcoin wallet creation returns `{ wallet, mnemonic, chain, type }`. No Bitcoin address is derived during creation.
 
 ### Ethereum Mobile Wallet
 
-- `EthereumMobileWallet.getAddress(options?)`: derives an Ethereum address. Options type: `EthereumGetAddressOptions`.
-- `EthereumMobileWallet.signMessage(options)`: signs a personal message. Options type: `EthereumSignMessageOptions`.
-- `EthereumMobileWallet.signTransaction(options)`: signs an ethers `TransactionRequest`. Options type: `EthereumSignTransactionOptions`.
-- `EthereumMobileWallet.getChild(options?)`: derives an `HDKey`. Options type: `EthereumGetChildOptions`.
+- `wallet.getAddress(options?)`: derives an Ethereum address.
+- `wallet.signMessage(options)`: signs a personal message.
+- `wallet.signTransaction(options)`: signs an ethers transaction request.
+- `wallet.getChild(options?)`: derives an HD child key.
 
 ### Bitcoin Mobile Wallet
 
-- `BitcoinMobileWallet.getAddress(options)`: returns the public extended key at the requested derivation path. Options type: `BitcoinGetAddressOptions`.
-- `BitcoinMobileWallet.signMessage(options)`: signs a Bitcoin message. Options type: `BitcoinSignMessageOptions`.
-- `BitcoinMobileWallet.signPsbt(options)`: signs each PSBT input and returns signed PSBT hex. Options type: `BitcoinSignPsbtOptions`.
-- `BitcoinMobileWallet.getChild(options?)`: derives an `HDKey`. Options type: `BitcoinGetChildOptions`.
-- `BitcoinMobileWallet.master`: root `HDKey` created from the mnemonic.
-- `BitcoinTransactionToSign`: lower-level PSBT payload shape with `psbtHex` and per-input `derivationPaths`.
+- `wallet.getExtendedPublicKey(options)`: returns the public extended key at the requested derivation path.
+- `wallet.signMessage(options)`: signs a Bitcoin message.
+- `wallet.signPsbt(options)`: signs each PSBT input and returns signed PSBT hex.
+- `wallet.getChild(options?)`: derives an HD child key.
+- `wallet.master`: root HD key created from the mnemonic.
 
 ### Utilities
 
@@ -265,34 +376,27 @@ import {
 ### Passkeys
 
 - `canUsePasskey()`: returns `true` when the current iOS or Android device supports passkey PRF operations.
-- `registerPasskey(options)`: registers a resident passkey and returns `{ key, nonce }`. Options type: `RegisterPasskeyOptions`.
-- `getPasskey(options)`: retrieves a PRF key using a stored nonce and returns `{ key, nonce }`. Options type: `GetPasskeyOptions`.
-- `PasskeyRelyingParty`: relying-party `{ id, name }`.
-- `PasskeyUser`: resident passkey user `{ id, name, displayName }`.
-- `PasskeyPrfResult`: base64 PRF `key` and base64 `nonce`.
+- `registerPasskey(options)`: registers a resident passkey and returns `{ key, nonce }`.
+- `getPasskey(options)`: retrieves a PRF key using a stored nonce and returns `{ key, nonce }`.
 
 ### Ledger
 
 - `ledgerService`: singleton for Ledger Bluetooth discovery, connection, app opening, session observation, signing, and cleanup.
-- `ledgerService.startDiscovery(options?)`: starts Bluetooth discovery. Options type: `LedgerDiscoveryOptions`.
+- `ledgerService.startDiscovery(options?)`: starts Bluetooth discovery.
 - `ledgerService.stopDiscovery()`: stops an active discovery scan.
 - `ledgerService.connect(device)`: connects to a discovered Ledger device.
 - `ledgerService.disconnect()`: disconnects the current Ledger device and resets the session.
 - `ledgerService.openApp(appName, options?)`: opens a Ledger app such as `Ethereum` or `Bitcoin`.
-- `ledgerService.getSessionState()` / `ledgerService.observeSessionState()`: read or subscribe to `LedgerSessionState`.
+- `ledgerService.getSessionState()` / `ledgerService.observeSessionState()`: reads or subscribes to the Ledger session state.
 - `ledgerService.getEthereumAddress(options?)`: reads the default Ethereum address.
 - `ledgerService.signEthereumMessage(message, options?)`: signs an Ethereum personal message.
 - `ledgerService.signEthereumTransaction(transaction, options?)`: signs a serialized Ethereum transaction.
 - `ledgerService.getBitcoinExtendedPublicKey(options?)`: reads the default Bitcoin account xpub.
 - `ledgerService.getBitcoinMasterFingerprint(options?)`: reads the Bitcoin master fingerprint as hex.
 - `ledgerService.signBitcoinMessage(message, derivationPath, options?)`: signs a Bitcoin message.
-- `ledgerService.signBitcoinTransaction(params, options?)`: signs a Bitcoin PSBT with wallet policy metadata. Params type: `LedgerBitcoinTransactionParams`.
+- `ledgerService.signBitcoinTransaction(params, options?)`: signs a Bitcoin PSBT with wallet policy metadata.
 - `ledgerService.cleanup()`: stops discovery, disconnects, clears subscriptions, and destroys BLE resources.
-- `LedgerActionOptions` / `LedgerActionState`: progress callback types used by Ledger operations.
-- `LedgerSessionStatus` / `LedgerSessionState`: connection lifecycle state types.
-- `LedgerDiscoveryOptions`: callbacks for Bluetooth device discovery.
-- `BitcoinSigner` / `LedgerBitcoinTransactionParams`: Bitcoin wallet policy and PSBT signing metadata.
-- `LedgerDeviceDisconnectedError` / `isLedgerDeviceDisconnectedError(error)`: Ledger disconnection error and type guard.
+- `isLedgerDeviceDisconnectedError(error)`: returns `true` when an error represents a Ledger disconnection.
 
 ## Contributing
 

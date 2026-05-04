@@ -65,7 +65,9 @@ describe("createBitcoinMobileWallet", () => {
   it("derives the default Bitcoin account xpub from a mnemonic", async () => {
     const wallet = await createBitcoinMobileWallet(MNEMONIC);
 
-    await expect(wallet.getAddress({ derivationPath: "m/49'/0'/0'" })).resolves.toBe(ACCOUNT_XPUB);
+    await expect(wallet.getExtendedPublicKey({ derivationPath: "m/49'/0'/0'" })).resolves.toBe(
+      ACCOUNT_XPUB,
+    );
     expect(wallet.getChild().publicExtendedKey).toBe(ACCOUNT_XPUB);
     expect(wallet.master.privateKey).toBeDefined();
   });

@@ -4,8 +4,8 @@ import * as bip39 from "@scure/bip39";
 import * as bitcoin from "bitcoinjs-lib";
 import { signMessage as signBitcoinMessage } from "../bitcoin";
 import type {
-  BitcoinGetAddressOptions,
   BitcoinGetChildOptions,
+  BitcoinGetExtendedPublicKeyOptions,
   BitcoinMobileWallet,
   BitcoinSignMessageOptions,
   BitcoinSignPsbtOptions,
@@ -80,7 +80,7 @@ class BitcoinWallet {
     return signedPsbtHex;
   }
 
-  public async getAddress(derivationPath: string) {
+  public async getExtendedPublicKey(derivationPath: string) {
     const child = this._master.derive(derivationPath);
     if (!child.publicKey) {
       throw new Error("Public key is undefined");
@@ -101,7 +101,8 @@ class BitcoinWallet {
 }
 
 const createBitcoinMobileWalletHandle = (wallet: BitcoinWallet): BitcoinMobileWallet => ({
-  getAddress: ({ derivationPath }: BitcoinGetAddressOptions) => wallet.getAddress(derivationPath),
+  getExtendedPublicKey: ({ derivationPath }: BitcoinGetExtendedPublicKeyOptions) =>
+    wallet.getExtendedPublicKey(derivationPath),
   signMessage: ({ message, derivationPath }: BitcoinSignMessageOptions) =>
     wallet.signMessage(message, derivationPath),
   signPsbt: ({

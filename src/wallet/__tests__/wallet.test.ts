@@ -56,9 +56,9 @@ describe("createMobileWallet", () => {
       type: "bitcoin",
     });
     expect("address" in result).toBe(false);
-    await expect(result.wallet.getAddress({ derivationPath: "m/49'/0'/0'" })).resolves.toBe(
-      BITCOIN_ACCOUNT_XPUB,
-    );
+    await expect(
+      result.wallet.getExtendedPublicKey({ derivationPath: "m/49'/0'/0'" }),
+    ).resolves.toBe(BITCOIN_ACCOUNT_XPUB);
   });
 
   it("rejects invalid mnemonics", async () => {
