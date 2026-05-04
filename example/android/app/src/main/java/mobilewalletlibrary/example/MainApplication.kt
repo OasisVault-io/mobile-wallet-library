@@ -1,4 +1,4 @@
-package rnmultisigwallet.example
+package mobilewalletlibrary.example
 
 import android.app.Application
 import android.content.res.Configuration

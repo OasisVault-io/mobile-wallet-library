@@ -1,4 +1,4 @@
-package rnmultisigwallet.example
+package mobilewalletlibrary.example
 
 import android.os.Build
 import android.os.Bundle

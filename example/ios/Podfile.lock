@@ -71,6 +71,7 @@ PODS:
   - hermes-engine (0.14.1):
     - hermes-engine/Pre-built (= 0.14.1)
   - hermes-engine/Pre-built (0.14.1)
+  - MultiplatformBleAdapter (0.2.0)
   - NitroModules (0.35.4):
     - hermes-engine
     - RCTRequired
@@ -1512,6 +1513,51 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+  - react-native-ble-plx (3.5.1):
+    - hermes-engine
+    - MultiplatformBleAdapter (= 0.2.0)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - react-native-passkey (3.3.3):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-quick-base64 (2.2.2):
     - React-Core
   - React-NativeModulesApple (0.83.6):
@@ -1952,6 +1998,8 @@ DEPENDENCIES:
   - React-logger (from `../../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-ble-plx (from `../../node_modules/react-native-ble-plx`)
+  - react-native-passkey (from `../../node_modules/react-native-passkey`)
   - react-native-quick-base64 (from `../../node_modules/react-native-quick-base64`)
   - React-NativeModulesApple (from `../../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-networking (from `../../node_modules/react-native/ReactCommon/react/networking`)
@@ -1988,6 +2036,10 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - Yoga (from `../../node_modules/react-native/ReactCommon/yoga`)
+
+SPEC REPOS:
+  trunk:
+    - MultiplatformBleAdapter
 
 EXTERNAL SOURCES:
   EXConstants:
@@ -2091,6 +2143,10 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-ble-plx:
+    :path: "../../node_modules/react-native-ble-plx"
+  react-native-passkey:
+    :path: "../../node_modules/react-native-passkey"
   react-native-quick-base64:
     :path: "../../node_modules/react-native-quick-base64"
   React-NativeModulesApple:
@@ -2177,6 +2233,7 @@ SPEC CHECKSUMS:
   ExpoModulesJSI: 24121c9a2f32d5f6b6ca2f7ff54925be716d5841
   FBLazyVector: 427fa1856a481856091061293ce865a75aa4f20f
   hermes-engine: 2c3b99d986af954a11748c97dd4126f3c90054cb
+  MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   NitroModules: f45159491c5a0e7161685a301b1c6c11440b3ab1
   QuickCrypto: 0708a392535332365b7f4a16a0b229482be9a1e0
   RCTDeprecation: 9502b5eb8e3c9eb75ff5a333b2c591bab9d91e28
@@ -2215,6 +2272,8 @@ SPEC CHECKSUMS:
   React-logger: 702a49dadb10a6bd63d56b297c3350b5ea552141
   React-Mapbuffer: bcd9f00a498b2981c7b390f00fd2b7cd6e0ead29
   React-microtasksnativemodule: 203b41906d627dac7d697bccba6137b630951fae
+  react-native-ble-plx: 33232d5b55f5d5393f5f41bf7a30a1eb75280a37
+  react-native-passkey: 2a4f7024bccad1c95aa5d03cb4052aa7c6a57351
   react-native-quick-base64: 6568199bb2ac8e72ecdfdc73a230fbc5c1d3aac4
   React-NativeModulesApple: 9068613f7650828eed29ead6fc0d0a1620117e6a
   React-networking: 233dd85e1b890ca191f64f0896153165571b3039
@@ -2252,6 +2311,6 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: 3914bee181ed5cae486f880607ad5dd4d9db8935
   Yoga: e41d64347f52d634dd8c2f6bac33f95081959fd3
 
-PODFILE CHECKSUM: c5c1e0e367fd609fb6a6dfe918c954b296ec3c30
+PODFILE CHECKSUM: 39ec957bcbe31e3d27ec9919ec214c077bb5325c
 
 COCOAPODS: 1.16.2
