@@ -1,6 +1,6 @@
-# rn-multisig-wallet
+# mobile-wallet-library
 
-[![npm version](https://img.shields.io/npm/v/rn-multisig-wallet.svg)](https://www.npmjs.com/package/rn-multisig-wallet)
+[![npm version](https://img.shields.io/npm/v/mobile-wallet-library.svg)](https://www.npmjs.com/package/mobile-wallet-library)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.83+-61dafb.svg)](https://reactnative.dev/)
@@ -42,7 +42,7 @@ This package uses React Native native modules. After installing or changing
 native dependencies, rebuild the iOS and Android apps.
 
 ```sh
-npm install rn-multisig-wallet
+npm install mobile-wallet-library
 ```
 
 ### Expo Native Setup
@@ -69,12 +69,33 @@ folder before building:
 cd ios && pod install
 ```
 
+## Example App
+
+The repo includes an Expo development-build example that exercises the main
+flows: BTC/ETH mobile wallet creation, BTC/ETH Ledger usage, and passkey
+registration/retrieval.
+
+<img src="./example/assets/example-app.png" alt="mobile-wallet-library example app showing mobile wallet, Ledger, and passkey flows" width="360" />
+
+Run it from the `example` workspace after installing dependencies and rebuilding
+the native app:
+
+```sh
+pnpm --filter mobile-wallet-library-example prebuild
+pnpm --filter mobile-wallet-library-example ios
+pnpm --filter mobile-wallet-library-example android
+```
+
+Use a development build, not Expo Go. Passkey and Ledger flows require native
+modules and should be tested on physical devices with the required associated
+domain, Bluetooth permissions, and Ledger app installed.
+
 ## Quick Start
 
 ### Create an Ethereum Wallet
 
 ```ts
-import { createMobileWallet } from "rn-multisig-wallet";
+import { createMobileWallet } from "mobile-wallet-library";
 
 const { wallet, mnemonic, address } = await createMobileWallet({
   chain: "ethereum",
@@ -105,7 +126,7 @@ console.log({ messageSignature, signedTransaction });
 ### Create a Bitcoin Wallet
 
 ```ts
-import { createMobileWallet } from "rn-multisig-wallet";
+import { createMobileWallet } from "mobile-wallet-library";
 
 const { wallet, mnemonic } = await createMobileWallet({
   chain: "bitcoin",
@@ -141,7 +162,7 @@ Before calling these helpers, complete the
 and configure the associated domain for your relying-party id.
 
 ```ts
-import { canUsePasskey, registerPasskey } from "rn-multisig-wallet";
+import { canUsePasskey, registerPasskey } from "mobile-wallet-library";
 
 if (!canUsePasskey()) {
   throw new Error("Passkeys are not available on this device");
@@ -170,7 +191,7 @@ library. The app controls discovery, connection, app opening, and signing
 requests.
 
 ```ts
-import { ledgerService } from "rn-multisig-wallet";
+import { ledgerService } from "mobile-wallet-library";
 
 await ledgerService.startDiscovery({
   onDevicesFound: async ([device]) => {
@@ -201,7 +222,7 @@ await ledgerService.startDiscovery({
 ### Restore an Ethereum Wallet
 
 ```ts
-import { createMobileWallet } from "rn-multisig-wallet";
+import { createMobileWallet } from "mobile-wallet-library";
 
 const { wallet, address } = await createMobileWallet({
   chain: "ethereum",
@@ -218,7 +239,7 @@ console.log({ address, nextAddress });
 ### Sign a Bitcoin PSBT
 
 ```ts
-import { createMobileWallet } from "rn-multisig-wallet";
+import { createMobileWallet } from "mobile-wallet-library";
 
 const { wallet } = await createMobileWallet({
   chain: "bitcoin",
@@ -252,7 +273,7 @@ General requirements:
   same nonce to `getPasskey` later to retrieve the same PRF key.
 
 ```ts
-import { getPasskey } from "rn-multisig-wallet";
+import { getPasskey } from "mobile-wallet-library";
 
 const storedNonce = "...";
 
@@ -286,7 +307,7 @@ Main concepts:
   screen/session is finished so BLE resources and subscriptions are released.
 
 ```ts
-import { ledgerService } from "rn-multisig-wallet";
+import { ledgerService } from "mobile-wallet-library";
 
 await ledgerService.openApp("Bitcoin");
 
@@ -338,7 +359,7 @@ import {
   BITCOIN_MAINNET_DERIVATION_PATH,
   ETHEREUM_DECIMALS,
   ETHEREUM_DERIVATION_PATH,
-} from "rn-multisig-wallet";
+} from "mobile-wallet-library";
 ```
 
 - `BITCOIN_DECIMALS`: `8`.

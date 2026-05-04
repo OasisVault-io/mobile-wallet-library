@@ -1,5 +1,5 @@
 {
-  "name": "rn-multisig-wallet",
+  "name": "mobile-wallet-library",
   "version": "0.1.0",
   "description": "Library that allows the creation of multisig wallets in BTC and ETH ",
   "keywords": [
@@ -7,15 +7,15 @@
     "ios",
     "react-native"
   ],
-  "homepage": "https://github.com/OasisVault-io/rn-multisig-wallet#readme",
+  "homepage": "https://github.com/OasisVault-io/mobile-wallet-library#readme",
   "bugs": {
-    "url": "https://github.com/OasisVault-io/rn-multisig-wallet/issues"
+    "url": "https://github.com/OasisVault-io/mobile-wallet-library/issues"
   },
   "license": "MIT",
   "author": "OasisVault <dev@oasisvault.io> (https://github.com/dev-ov)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OasisVault-io/rn-multisig-wallet.git"
+    "url": "git+https://github.com/OasisVault-io/mobile-wallet-library.git"
   },
   "files": [
     "src",
@@ -50,7 +50,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "example": "pnpm --filter rn-multisig-wallet-example",
+    "example": "pnpm --filter mobile-wallet-library-example",
     "clean": "del-cli lib",
     "prepare": "bob build",
     "typecheck": "tsc",
