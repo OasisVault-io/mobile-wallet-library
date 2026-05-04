@@ -58,7 +58,7 @@
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "test": "jest",
+    "test": "vitest run",
     "release": "release-it --only-version"
   },
   "dependencies": {
@@ -97,7 +97,8 @@
     "react-native-builder-bob": "0.39.0",
     "release-it": "^19.2.4",
     "turbo": "^2.8.21",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.0.15"
   },
   "peerDependencies": {
     "react": "*",
