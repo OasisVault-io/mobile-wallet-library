@@ -1,9 +1,10 @@
 {
   "expo": {
-    "name": "RnMultisigWallet Example",
-    "slug": "rn-multisig-wallet-example",
+    "name": "MobileWalletLibrary Example",
+    "slug": "mobile-wallet-library-example",
     "version": "1.0.0",
     "orientation": "portrait",
+    "newArchEnabled": true,
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -12,8 +13,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "associatedDomains": ["webcredentials:example.com"],
       "supportsTablet": true,
-      "bundleIdentifier": "rnmultisigwallet.example"
+      "bundleIdentifier": "mobilewalletlibrary.example"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,10 +24,19 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "rnmultisigwallet.example"
+      "package": "mobilewalletlibrary.example"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "react-native-quick-crypto",
+      [
+        "react-native-ble-plx",
+        {
+          "bluetoothAlwaysPermission": "Allow $(PRODUCT_NAME) to connect to Ledger devices."
+        }
+      ]
+    ]
   }
 }

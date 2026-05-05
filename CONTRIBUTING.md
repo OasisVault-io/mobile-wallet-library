@@ -57,7 +57,7 @@ pnpm example ios
 To confirm that the app is running with the new architecture, you can check the Metro logs for a message like this:
 
 ```sh
-Running "RnMultisigWalletExample" with {"fabric":true,"initialProps":{"concurrentRoot":true},"rootTag":1}
+Running "MobileWalletLibraryExample" with {"fabric":true,"initialProps":{"concurrentRoot":true},"rootTag":1}
 ```
 
 Note the `"fabric":true` and `"concurrentRoot":true` properties.

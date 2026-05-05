@@ -17,7 +17,7 @@ config.resolver = {
   ...config.resolver,
   extraNodeModules: {
     ...config.resolver.extraNodeModules,
-    "rn-multisig-wallet": root,
+    "mobile-wallet-library": root,
   },
 };
 
