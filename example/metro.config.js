@@ -17,7 +17,7 @@ config.resolver = {
   ...config.resolver,
   extraNodeModules: {
     ...config.resolver.extraNodeModules,
-    "mobile-wallet-library": root,
+    "@oasisvault/mobile-wallet-library": root,
   },
 };
 

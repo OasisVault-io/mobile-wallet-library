@@ -1,6 +1,6 @@
 {
-  "name": "mobile-wallet-library",
-  "version": "0.1.0",
+  "name": "@oasisvault/mobile-wallet-library",
+  "version": "1.0.0",
   "description": "Library that allows the creation of multisig wallets in BTC and ETH ",
   "keywords": [
     "android",
@@ -47,6 +47,7 @@
     "./package.json": "./package.json"
   },
   "publishConfig": {
+    "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {

@@ -18,7 +18,7 @@ import {
   registerPasskey,
   type LedgerActionState,
   type LedgerSessionState,
-} from "mobile-wallet-library";
+} from "@oasisvault/mobile-wallet-library";
 
 const DEFAULT_RP_ID = "example.com";
 const DEFAULT_USER_ID = "user-123";
@@ -493,7 +493,7 @@ export default function App() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>mobile-wallet-library example</Text>
+      <Text style={styles.title}>@oasisvault/mobile-wallet-library example</Text>
       <Text style={styles.subtitle}>Run the core mobile wallet, Ledger, and passkey flows.</Text>
 
       <Section title="Mobile Wallets">

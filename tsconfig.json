@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "mobile-wallet-library": ["./src/index"]
+      "@oasisvault/mobile-wallet-library": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
