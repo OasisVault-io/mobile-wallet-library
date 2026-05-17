@@ -76,6 +76,7 @@
     "react-native-passkey": "3.3.3",
     "react-native-quick-base64": "^2.2.2",
     "react-native-quick-crypto": "1.0.19",
+    "rxjs": "^7.8.2",
     "secp256k1": "^5.0.1",
     "varuint-bitcoin": "^2.0.0"
   },
@@ -162,7 +163,7 @@
       "tagName": "v${version}"
     },
     "npm": {
-      "publish": true
+      "publish": false
     },
     "github": {
       "release": true
