@@ -145,46 +145,42 @@ export const registerPasskey = async ({
   nonce,
   timeout = 60000,
 }: RegisterPasskeyOptions): Promise<PasskeyPrfResult> => {
-  try {
-    nonce = nonce ?? generateRandomUint8Array(32);
-    const registrationOptions: PasskeyCreateRequest = {
-      attestation: "none",
-      authenticatorSelection: {
-        requireResidentKey: true,
-        residentKey: "required",
-        userVerification: "required",
-      },
-      challenge: generateChallenge(),
-      excludeCredentials: [],
-      extensions: {
-        prf: {
-          eval: {
-            first: nonce,
-          },
+  nonce = nonce ?? generateRandomUint8Array(32);
+  const registrationOptions: PasskeyCreateRequest = {
+    attestation: "none",
+    authenticatorSelection: {
+      requireResidentKey: true,
+      residentKey: "required",
+      userVerification: "required",
+    },
+    challenge: generateChallenge(),
+    excludeCredentials: [],
+    extensions: {
+      prf: {
+        eval: {
+          first: nonce,
         },
       },
-      pubKeyCredParams: [
-        { alg: -7, type: "public-key" },
-        { alg: -257, type: "public-key" },
-      ],
-      rp,
-      timeout,
-      user,
-    };
+    },
+    pubKeyCredParams: [
+      { alg: -7, type: "public-key" },
+      { alg: -257, type: "public-key" },
+    ],
+    rp,
+    timeout,
+    user,
+  };
 
-    let response = await Passkey.create(registrationOptions);
-    response = typeof response === "string" ? JSON.parse(response) : response;
+  let response = await Passkey.create(registrationOptions);
+  response = typeof response === "string" ? JSON.parse(response) : response;
 
-    const nonceString = fromByteArray(nonce);
+  const nonceString = fromByteArray(nonce);
 
-    const key = normalizePrfResult(
-      response.clientExtensionResults?.prf?.results?.first,
-    );
+  const key = normalizePrfResult(
+    response.clientExtensionResults?.prf?.results?.first,
+  );
 
-    return { key, nonce: nonceString };
-  } catch (error: any) {
-    throw error;
-  }
+  return { key, nonce: nonceString };
 };
 
 /**
@@ -198,31 +194,27 @@ export const getPasskey = async ({
   rpId,
   timeout = 60000,
 }: GetPasskeyOptions): Promise<PasskeyPrfResult> => {
-  try {
-    const options: PasskeyGetRequest = {
-      allowCredentials: [],
-      challenge: generateChallenge(),
-      rpId,
-      timeout,
-      userVerification: "required",
-      extensions: {
-        prf: {
-          eval: {
-            first: toByteArray(nonce),
-          },
+  const options: PasskeyGetRequest = {
+    allowCredentials: [],
+    challenge: generateChallenge(),
+    rpId,
+    timeout,
+    userVerification: "required",
+    extensions: {
+      prf: {
+        eval: {
+          first: toByteArray(nonce),
         },
       },
-    };
-    let response = await Passkey.get(options);
-    if (typeof response === "string") {
-      response = JSON.parse(response);
-    }
-    const key = normalizePrfResult(
-      response.clientExtensionResults?.prf?.results?.first,
-    );
-
-    return { key, nonce };
-  } catch (error: any) {
-    throw error;
+    },
+  };
+  let response = await Passkey.get(options);
+  if (typeof response === "string") {
+    response = JSON.parse(response);
   }
+  const key = normalizePrfResult(
+    response.clientExtensionResults?.prf?.results?.first,
+  );
+
+  return { key, nonce };
 };
