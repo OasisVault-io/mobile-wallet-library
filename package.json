@@ -1,6 +1,6 @@
 {
   "name": "mobile-wallet-library",
-  "version": "0.1.1",
+  "version": "1.0.1",
   "description": "Library that allows the creation of multisig wallets in BTC and ETH ",
   "keywords": [
     "android",
