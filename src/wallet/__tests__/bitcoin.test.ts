@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { HDKey } from "@scure/bip32";
 import * as bip39 from "@scure/bip39";
-import * as bitcoin from "bitcoinjs-lib";
+import * as bitcoin from "bitcoinjs-lib-v7";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createBitcoinMobileWallet } from "../bitcoin";
 
@@ -110,6 +110,47 @@ describe("createBitcoinMobileWallet", () => {
       fixture.signingPublicKey.toString("hex"),
     );
     expect(partialSignature?.signature.length).toBeGreaterThan(0);
+    const signingKey = wallet.master.derive("m/49'/0'/0'/0/0");
+    expect(
+      signedPsbt.validateSignaturesOfInput(0, (_publicKey, hash, signature) =>
+        signingKey.verify(hash, signature),
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects conflicting witness and non-witness UTXO amounts before signing", async () => {
+    const wallet = await createBitcoinMobileWallet(MNEMONIC);
+    const fixture = await createPsbtFixture();
+    const script = bitcoin.Psbt.fromHex(fixture.psbtHex).txOutputs[0]!.script;
+    const parent = new bitcoin.Transaction();
+    parent.addInput(new Uint8Array(32).fill(3), 0);
+    parent.addOutput(script, 100000n);
+    const psbt = new bitcoin.Psbt()
+      .addInput({
+        hash: parent.getId(),
+        index: 0,
+        nonWitnessUtxo: parent.toBuffer(),
+        witnessUtxo: { script, value: 2000n },
+      })
+      .addOutput({ script, value: 1000n });
+
+    await expect(
+      wallet.signPsbt({ inputDerivationPaths: "0/0", psbtHex: psbt.toHex() }),
+    ).rejects.toThrow(/Witness UTXO .*non-witness UTXO/);
+  });
+
+  it("rejects fee calculation and extraction when a finalized input lacks its UTXO", () => {
+    const psbt = new bitcoin.Psbt()
+      .addInput({
+        hash: new Uint8Array(32).fill(6),
+        index: 0,
+        finalScriptWitness: Uint8Array.of(0),
+      })
+      .addOutput({ script: Uint8Array.of(bitcoin.opcodes.OP_RETURN), value: 0n });
+    const parsed = bitcoin.Psbt.fromHex(psbt.toHex());
+
+    expect(() => parsed.getFee()).toThrow("Need a Utxo input item for input #0");
+    expect(() => parsed.extractTransaction()).toThrow("Need a Utxo input item for input #0");
   });
 
   it("reports the missing PSBT input derivation path", async () => {
