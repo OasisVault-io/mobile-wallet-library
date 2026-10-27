@@ -1,7 +1,7 @@
 import { BITCOIN_MAINNET_DERIVATION_PATH } from "../constants";
 import { HDKey } from "@scure/bip32";
 import * as bip39 from "@scure/bip39";
-import * as bitcoin from "bitcoinjs-lib";
+import * as bitcoin from "bitcoinjs-lib-v7";
 import { signMessage as signBitcoinMessage } from "../bitcoin";
 import type {
   BitcoinGetChildOptions,

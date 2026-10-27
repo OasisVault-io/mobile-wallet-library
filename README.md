@@ -425,6 +425,14 @@ import {
 - [Sending a pull request](CONTRIBUTING.md#sending-a-pull-request)
 - [Code of conduct](CODE_OF_CONDUCT.md)
 
+## Bitcoin dependency compatibility
+
+The wallet uses `bitcoinjs-lib-v7`, an npm alias for patched bitcoinjs-lib 7.x,
+which preserves its `bigint` amounts and `Uint8Array` APIs. The separate
+`bitcoinjs-lib` 6.x dependency satisfies Ledger Bitcoin signer's declared peer
+range. Ledger receives serialized base64 PSBTs, not v7 `Psbt` objects. Keep both
+major versions patched; do not replace the alias with the Ledger dependency.
+
 ## License
 
 MIT
