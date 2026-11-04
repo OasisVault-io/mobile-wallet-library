@@ -10,7 +10,7 @@ import {
   WalletPolicy,
 } from "@ledgerhq/device-signer-kit-bitcoin";
 import { HDKey } from "@scure/bip32";
-import * as bitcoin from "bitcoinjs-lib";
+import * as bitcoin from "bitcoinjs-lib-v7";
 import { Buffer } from "buffer";
 import { BITCOIN_MAINNET_DERIVATION_PATH } from "../constants";
 import { byteArrayToHexString } from "../crypto";

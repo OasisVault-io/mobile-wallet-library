@@ -1,6 +1,6 @@
 import { Buffer } from "buffer";
 import { HDKey } from "@scure/bip32";
-import * as bitcoin from "bitcoinjs-lib";
+import * as bitcoin from "bitcoinjs-lib-v7";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createLedgerBitcoinClient } from "../bitcoin";
 
