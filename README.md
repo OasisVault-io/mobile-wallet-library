@@ -217,6 +217,39 @@ await ledgerService.startDiscovery({
 });
 ```
 
+EIP-712 typed data is passed through to Ledger unchanged as
+`{ domain, types, primaryType, message }`. The resolved value is a serialized
+65-byte `0x...` signature:
+
+```ts
+const signature = await ledgerService.signEthereumTypedData(
+  {
+    domain: {
+      name: "Example",
+      version: "1",
+      chainId: 1,
+      verifyingContract: "0x0000000000000000000000000000000000000000",
+    },
+    types: {
+      Mail: [
+        { name: "from", type: "address" },
+        { name: "to", type: "address" },
+        { name: "contents", type: "string" },
+      ],
+    },
+    primaryType: "Mail",
+    message: {
+      from: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      to: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      contents: "Hello, Ledger",
+    },
+  },
+  {
+    onStateChange: (state) => console.log(state),
+  },
+);
+```
+
 ## Recipes
 
 ### Restore an Ethereum Wallet
@@ -411,6 +444,7 @@ import {
 - `ledgerService.getSessionState()` / `ledgerService.observeSessionState()`: reads or subscribes to the Ledger session state.
 - `ledgerService.getEthereumAddress(options?)`: reads the default Ethereum address.
 - `ledgerService.signEthereumMessage(message, options?)`: signs an Ethereum personal message.
+- `ledgerService.signEthereumTypedData(typedData, options?)`: signs EIP-712 typed data and returns a serialized 65-byte signature.
 - `ledgerService.signEthereumTransaction(transaction, options?)`: signs a serialized Ethereum transaction.
 - `ledgerService.getBitcoinExtendedPublicKey(options?)`: reads the default Bitcoin account xpub.
 - `ledgerService.getBitcoinMasterFingerprint(options?)`: reads the Bitcoin master fingerprint as hex.
