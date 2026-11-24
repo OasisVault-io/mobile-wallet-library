@@ -19,9 +19,10 @@ import {
   createLedgerBitcoinClient,
   type LedgerBitcoinTransactionParams,
 } from "./bitcoin";
-import { createLedgerEthereumClient } from "./ethereum";
+import { createLedgerEthereumClient, type LedgerEthereumTypedData } from "./ethereum";
 
 export type { BitcoinSigner, LedgerBitcoinTransactionParams } from "./bitcoin";
+export type { LedgerEthereumTypedData } from "./ethereum";
 
 /** Progress state emitted while a Ledger device action is running. */
 export type LedgerActionState = {
@@ -681,6 +682,14 @@ class LedgerService {
     options: LedgerActionOptions = {},
   ) {
     return this.ethereumLedger.signMessage(message, options);
+  }
+
+  /** Signs EIP-712 typed data with the connected Ledger. */
+  public async signEthereumTypedData(
+    typedData: LedgerEthereumTypedData,
+    options: LedgerActionOptions = {},
+  ) {
+    return this.ethereumLedger.signTypedData(typedData, options);
   }
 
   /** Signs a serialized Ethereum transaction with the connected Ledger. */

@@ -4,10 +4,13 @@ import {
   type DeviceSessionId,
   type ExecuteDeviceActionReturnType,
 } from "@ledgerhq/device-management-kit";
-import { SignerEthBuilder } from "@ledgerhq/device-signer-kit-ethereum";
+import { SignerEthBuilder, type TypedData } from "@ledgerhq/device-signer-kit-ethereum";
 import { ethers } from "ethers";
 import { ETHEREUM_DERIVATION_PATH } from "../constants";
 import type { LedgerActionOptions } from "./ledger";
+
+/** EIP-712 typed data accepted by Ledger's Ethereum signer. */
+export type LedgerEthereumTypedData = TypedData;
 
 type LedgerEthereumSignature = {
   r: string;
@@ -65,6 +68,19 @@ export const createLedgerEthereumClient = ({
       const signer = createSigner();
       const signature = await waitForLedgerAction<LedgerEthereumSignature>(
         signer.signMessage(normalizeDerivationPath(ETHEREUM_DERIVATION_PATH), message),
+        options,
+      );
+
+      return serializeSignature(signature);
+    },
+
+    signTypedData: async (
+      typedData: LedgerEthereumTypedData,
+      options: LedgerActionOptions = {},
+    ) => {
+      const signer = createSigner();
+      const signature = await waitForLedgerAction<LedgerEthereumSignature>(
+        signer.signTypedData(normalizeDerivationPath(ETHEREUM_DERIVATION_PATH), typedData),
         options,
       );
 

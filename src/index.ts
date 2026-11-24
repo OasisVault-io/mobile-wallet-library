@@ -49,6 +49,7 @@ export {
   type LedgerActionState,
   type LedgerBitcoinTransactionParams,
   type LedgerDiscoveryOptions,
+  type LedgerEthereumTypedData,
   type LedgerSessionState,
   type LedgerSessionStatus,
 } from "./ledger/ledger";
